@@ -39,12 +39,12 @@ This repository contains the current progress of a research project supported by
 
 **Note:** GWAS data will be integrated in a future stage.
 
-## Prerequisites (**important**)
+## Prerequisites (**important!**)
 Before using the application, you must download two **.tar.gz** files:
-- Pre-trained BioBERT-Base v1.1 **(biobert_v1.1_pubmed.tar.gz)** 
-- [scispaCy for NER (en_ner_bionlp13cg_md-0.5.4.tar.gz)](https://allenai.github.io/scispacy/)
+- [**Pre-trained BioBERT-Base v1.1** (biobert_v1.1_pubmed.tar.gz)](https://github.com/naver/biobert-pretrained?tab=readme-ov-file)  
+- [**scispaCy for NER** (en_ner_bionlp13cg_md-0.5.4.tar.gz)](https://allenai.github.io/scispacy/)
 
-Useful links: [Pretrained BioBERT](https://github.com/naver/biobert-pretrained?tab=readme-ov-file) 
+
 
 
 ## ⚙️ Usage
