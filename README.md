@@ -34,14 +34,12 @@ This repository contains the current progress of a research project supported by
 
 **Current status:**  
 - Collection and preprocessing of a large corpus of PubMed abstracts related to ALS.
-- Training of _fastText_ and _BioBERT_ models to obtain gene embeddings.  
-- Construction of semantic similarity networks for community detection and association analysis.  
+- Training of _fastText_ and _Word2Vec_ models to obtain gene embeddings in different years (e.g. 2000-2010).
 
 **Note:** GWAS data will be integrated in a future stage.
 
 ## Prerequisites (**important!**)
-Before using the application, you must download two **.tar.gz** files:
-- [**Pre-trained BioBERT-Base v1.1** (biobert_v1.1_pubmed.tar.gz)](https://github.com/naver/biobert-pretrained?tab=readme-ov-file)  
+Before using the application, you must download the **.tar.gz** file:
 - [**scispaCy for NER** (en_ner_bionlp13cg_md-0.5.4.tar.gz)](https://allenai.github.io/scispacy/)
 
 
