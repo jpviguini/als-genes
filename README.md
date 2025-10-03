@@ -27,7 +27,8 @@
 
 
 ---
-
+🚧 [ This project is currently under development... ]
+---
 
 ## 📝 Overview
 This repository contains the current progress of a research project supported by FAPESP, aiming to explore and prioritize genes potentially linked to Amyotrophic Lateral Sclerosis (ALS). The approach combines Natural Language Processing (NLP) and network analysis to extract, represent, and analyze gene relationships from biomedical literature.  
