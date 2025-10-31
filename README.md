@@ -33,27 +33,6 @@
 ## 📝 Overview
 This repository contains the current progress of a research project supported by FAPESP, aiming to explore and prioritize genes potentially linked to Amyotrophic Lateral Sclerosis (ALS). The approach combines Natural Language Processing (NLP) and network analysis to extract, represent, and analyze gene relationships from biomedical literature.  
 
-**Current status:**  
-- Collection and preprocessing of a large corpus of PubMed abstracts related to ALS.
-- Training of _fastText_ and _Word2Vec_ models to obtain gene embeddings in different years (e.g. 2000-2010).
-
-**Note:** GWAS data will be integrated in a future stage.
-
-## Prerequisites (**important!**)
-Before using the application, you must download the **.tar.gz** file:
-- [**scispaCy for NER** (en_ner_bionlp13cg_md-0.5.4.tar.gz)](https://allenai.github.io/scispacy/)
-
-
-
-
-## ⚙️ Usage
-Clone this repository:
-   ```bash
-   git clone https://github.com/jpviguini/als-genes.git
-   cd als-genes
-   ```
-
-There is a **.ipynb notebook** containing the available code in this repository.
 
 
 ## Acknowledgements
