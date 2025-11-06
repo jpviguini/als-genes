@@ -36,6 +36,8 @@ ALS_SYNONYMS = [
 ]
 
 
+
+
 def normalize_text(text: str) -> str:
     if not isinstance(text, str):
         return ""
@@ -44,13 +46,12 @@ def normalize_text(text: str) -> str:
     for k, v in CHAR_MAP.items():
         text = text.replace(k, v)
 
-    # lowercase
     text = text.lower()
 
     # remove "et al"
     text = re.sub(r"\bet\s+al\b", " ", text)
 
-
+    # remove scientific units and symbols
     for sym in UNITS_AND_SYMBOLS:
         text = text.replace(sym, " ")
 
@@ -58,15 +59,20 @@ def normalize_text(text: str) -> str:
     regex_als = r'(?i)(' + '|'.join(ALS_SYNONYMS) + r')'
     text = re.sub(regex_als, ' ALS ', text)
 
-    # remove URLs
-    text = re.sub(r"http\S+", " ", text)
+    # remove URLs and HTML entities
+    text = re.sub(r"http\S+|www\.\S+", " ", text)
 
+    # fix stray and duplicated hyphens
+    text = re.sub(r'\b-+\s*', '', text)     # remove hyphen before words
+    text = re.sub(r'\s*-+\b', '', text)     # remove hyphen after words
+    text = re.sub(r'-{2,}', '-', text)      # replace multiple hyphens with one
+    text = re.sub(r'\s*-\s*', '-', text)    # clean spaces around internal hyphens
+
+    # remove isolated numbers and non-alphanumeric chars
     text = re.sub(r"[^a-z0-9_\-\s]", " ", text)
-
-    # remove isolated numbers
     text = re.sub(r"\b\d+\b", " ", text)
 
-    # remove 1 char words
+    # remove 1-character words
     text = re.sub(r"\b[a-zA-Z0-9]\b", " ", text)
 
     # normalize spaces
@@ -78,16 +84,40 @@ def normalize_text(text: str) -> str:
 def preprocess_corpus(df, text_column="text"):
     df = df.copy()
     df[text_column] = df[text_column].astype(str).apply(normalize_text)
-    df = df[df[text_column].str.len() > 10]  # removes too short texts
 
-    # remove articles that contains “mcr-als” (this is not about ALS)
+    # filter out too short texts
+    df = df[df[text_column].str.len() > 10]
+    df = df[df[text_column].apply(lambda x: len(x.split()) > 20)]
+
+    # remove articles that contain “mcr-als”
     df = df[~df[text_column].str.contains(r"\bmcr[- ]?als\b", case=False, regex=True)]
+
+    # remove unwanted publication types
+    exclude_terms = [
+        r"\bforeword\b",
+        r"\bprelude\b",
+        r"\bcommentary\b",
+        r"\bworkshop\b",
+        r"\bconference\b",
+        r"\bsymposium\b",
+        r"\bcomment\b",
+        r"\bcomments\b",
+        r"\bretract\b",
+        r"\bcorrection\b",
+        r"\berratum\b",
+        r"\bmemorial\b"
+    ]
+    pattern = "|".join(exclude_terms)
+    df = df[~df[text_column].str.contains(pattern, case=False, regex=True)]
+
+    # remove duplicated texts
+    df = df.drop_duplicates(subset=[text_column])
 
     return df
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("../data/corpus_als_with_year.csv")
+    df = pd.read_csv("../data/corpus_als_general.csv")
     df_clean = preprocess_corpus(df)
-    df_clean.to_csv("../data/corpus_als_preprocessed3.csv", index=False)
-    print(f"Cleaned corpus saved in ../data/corpus_als_preprocessed3.csv with {len(df_clean)} articles.")
+    df_clean.to_csv("../data/corpus_als_preprocessed_general.csv", index=False)
+    print(f"Cleaned corpus saved in ../data/corpus_als_preprocessed_general.csv with {len(df_clean)} articles.")
