@@ -41,6 +41,3 @@ Motor Neuron Disease prognosis
 Motor Neuron Disease symptoms
 Motor Neuron Disease treatment
 Neuroinflammation ALS
-Oxidative stress ALS
-RNA metabolism ALS
-TDP-43 proteinopathy
