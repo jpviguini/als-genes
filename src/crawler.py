@@ -1,6 +1,9 @@
 from Bio import Entrez
 import json, string, re, os, time
 from pathlib import Path
+from tqdm import tqdm
+import subprocess
+import xml.etree.ElementTree as ET
 
 
 ENTREZ_EMAIL = "jpvviguini@gmail.com"
@@ -25,23 +28,63 @@ def list_from_txt(file_path):
     
     return strings_list
 
-def search(query):
-    '''
-    Executes ESearch on pubmed for each item
-    '''
+# This was limiting each query by 10,000 results per search term.
+# def search(query):
+#     '''
+#     Executes ESearch on pubmed for each item
+#     '''
 
-    final_query = '{} AND English[Language]'.format(query)
+#     final_query = '{} AND English[Language]'.format(query)
 
-    Entrez.email = ENTREZ_EMAIL
-    handle = Entrez.esearch(db='pubmed', 
-                            sort='relevance', 
-                            retmax='999999', # takes all IDs
-                            retmode='xml', 
-                            term=final_query)
-    results = Entrez.read(handle)
-    handle.close()
+#     Entrez.email = ENTREZ_EMAIL
+#     handle = Entrez.esearch(db='pubmed', 
+#                             sort='relevance', 
+#                             retmax='999999', # takes all IDs
+#                             retmode='xml', 
+#                             term=final_query)
+#     results = Entrez.read(handle)
+#     handle.close()
 
-    return results
+#     return results
+
+
+
+def search_all(query):
+    """
+    Executes a full PubMed search using NCBI EDirect.
+    Requires 'esearch' and 'efetch' installed (part of EDirect tools).
+    """
+    final_query = f'{query} AND English[Language]'
+    print(f"\nSearching all results for: {query} (using EDirect)")
+    
+    try:
+        # run EDirect: esearch + efetch + extract PMIDs
+        command = [
+            "bash", "-c",
+            f'esearch -db pubmed -query "{final_query}" | efetch -format uid'
+        ]
+        result = subprocess.run(command, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print(f"  -> Error running EDirect: {result.stderr}")
+            return []
+        
+        # Split PMIDs (one per line)
+        all_ids = [line.strip() for line in result.stdout.split("\n") if line.strip()]
+        print(f"  -> Retrieved {len(all_ids)} IDs in total using EDirect.")
+        
+        return all_ids
+
+    except FileNotFoundError:
+        print("EDirect not found. Install it first with:")
+        print("    sh -c \"$(curl -fsSL https://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh)\"")
+        return []
+    except Exception as e:
+        print(f"  -> Error during EDirect search: {e}")
+        return []
+
+
+
 
 def fetch_details(id_list):
     '''
@@ -138,8 +181,8 @@ def extend_gene_search(gene_symbols):
 
 
 if __name__ == '__main__':
-    destination_path = '../results_als/'
-    ids_file_path = '../data/ids_als.txt'
+    destination_path = '../results_als_general/'
+    ids_file_path = '../data/ids_als_general.txt'
 
     Path(ids_file_path).touch(exist_ok=True)
     Path(destination_path).mkdir(parents=True, exist_ok=True)
@@ -151,11 +194,11 @@ if __name__ == '__main__':
 
 
     # loads the target genes and search for their synonyms
-    core_genes = list_from_txt('../data/core_genes.txt')
-    gene_synonyms = extend_gene_search(core_genes)
+    #core_genes = list_from_txt('../data/core_genes.txt')
+    #gene_synonyms = extend_gene_search(core_genes)
     
     
-    search_strings.extend(gene_synonyms)
+    #search_strings.extend(gene_synonyms)
     search_strings = list(dict.fromkeys(search_strings)) 
 
     print(f"\n--- Starting search in Pubmed with {len(search_strings)} terms in total ---")
@@ -179,10 +222,13 @@ if __name__ == '__main__':
 
            
             s = s.encode('ascii', 'ignore').decode('ascii')
-            print(f'\Searching for: "{s}"')
+            print(f'Searching for: "{s}"')
 
-            results = search(s)
-            id_list = results.get('IdList', [])
+            # results = search(s)
+            # id_list = results.get('IdList', [])
+            # id_list = [x for x in id_list if x not in ids] # Filter IDs already seen
+
+            id_list = search_all(s)
             id_list = [x for x in id_list if x not in ids] # Filter IDs already seen
             
             papers_retrieved = len(id_list)
@@ -193,13 +239,17 @@ if __name__ == '__main__':
                 print(f'{papers_retrieved} new articles found.')
                 ids.update(id_list)
 
-                papers = fetch_details(id_list)
+            batch_size = 9000  
+            term_folder = os.path.join(destination_path, s_clean_folder_name)
+            Path(term_folder).mkdir(parents=True, exist_ok=True)
+
+            new_papers_in_batch = 0
+
+            for i in tqdm(range(0, len(id_list), batch_size), desc=f"Fetching {s}", unit="batch"):
                 
+                batch_ids = id_list[i:i + batch_size]
+                papers = fetch_details(batch_ids)
 
-                term_folder = os.path.join(destination_path, s_clean_folder_name)
-                Path(term_folder).mkdir(parents=True, exist_ok=True)
-
-                new_papers_in_batch = 0
                 for paper in papers.get('PubmedArticle', []):
                     article_title = ''
                     article_title_filename = ''
@@ -211,28 +261,25 @@ if __name__ == '__main__':
                     try:
                         article_title = paper['MedlineCitation']['Article']['ArticleTitle']
                         article_title_filename = article_title.lower().translate(str.maketrans('', '', string.punctuation)).replace(' ', '_')
-                        
                     except KeyError as e:
                         if 'ArticleTitle' in e.args: pass
-                    
+
                     if article_title:
                         try:                
                             article_abstract = ' '.join(paper['MedlineCitation']['Article']['Abstract']['AbstractText'])
                         except KeyError as e:
                             if 'Abstract' in e.args: article_abstract = ''
-                        
+
                         try:
                             article_year = paper['MedlineCitation']['Article']['Journal']['JournalIssue']['PubDate']['Year']
                         except KeyError:
                             try:
-                              
                                 article_year = paper['MedlineCitation']['Article']['Journal']['JournalIssue']['PubDate']['MedlineDate'][0:4]
                             except KeyError:
                                 article_year = "XXXX" # unknown year
 
                         if len(article_year) == 4:
                             filename = '{}_{}'.format(article_year, article_title_filename)
-
                             if len(filename) > 150:
                                 filename = filename[0:146]
 
@@ -243,17 +290,23 @@ if __name__ == '__main__':
                                 myfile.write(article_title + ' ' + article_abstract)
                             
                             new_papers_in_batch += 1
-                
-                print(f"Saved {new_papers_in_batch} articles in '{term_folder}'")
-                papers_counter += new_papers_in_batch
 
-                # Save new IDs in a log file
-                with open(ids_file_path, 'a+', encoding='utf-8') as f:
-                    for pmid in id_list:
-                        f.write('\n' + str(pmid))
-        
+                print(f"  -> Saved {new_papers_in_batch} so far...")
+                time.sleep(0.5)  
+
+
+            
+            papers_counter += new_papers_in_batch
+
+            # Save new IDs in a log file
+            with open(ids_file_path, 'a+', encoding='utf-8') as f:
+                for pmid in id_list:
+                    f.write('\n' + str(pmid))
+
         except Exception as e:
             print(f'Fatal error in search loop "{s}": {e}')
             continue
+
+
             
-    print(f'\Data loader finished. Total of {papers_counter} new articles in this section.')
+    print(f'Data loader finished. Total of {papers_counter} new articles in this section.')
