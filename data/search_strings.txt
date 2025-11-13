@@ -1,43 +1,30 @@
+Amyotrophic Lateral Sclerosis polymorphism
 Amyotrophic Lateral Sclerosis
-Motor Neuron Disease
-Lou Gehrig's Disease
-ALS-FTD spectrum
-Frontotemporal Dementia
-ALS biology
-ALS causes
-ALS clinical outcomes
-ALS diagnosis
-ALS disease progression
-ALS drug discovery
-ALS drugs
-ALS etiology
-ALS gene discovery
-ALS gene expression
-ALS gene therapy
-ALS genes
-ALS genetic association
-ALS genetic markers
-ALS genetic risk
-ALS genetics
-ALS GWAS
-ALS molecular markers
-ALS mutation
-ALS pathogenesis
-ALS polymorphism
-ALS prognosis
-ALS protein aggregation
-ALS risk factors
-ALS symptoms
-ALS target therapy
-ALS therapeutic targets
-ALS treatment
-ALS variant
-Familial ALS
-Sporadic ALS
-Motor neuron degeneration
-Motor Neuron Disease diagnosis
-Motor Neuron Disease genetics
-Motor Neuron Disease prognosis
-Motor Neuron Disease symptoms
-Motor Neuron Disease treatment
-Neuroinflammation ALS
+Amyotrophic Lateral Sclerosis genes
+Amyotrophic Lateral Sclerosis biology
+Amyotrophic Lateral Sclerosis causes
+Amyotrophic Lateral Sclerosis diagnosis
+Amyotrophic Lateral Sclerosis disease progression
+Amyotrophic Lateral Sclerosis drug discovery
+Amyotrophic Lateral Sclerosis drugs
+Amyotrophic Lateral Sclerosis etiology
+Amyotrophic Lateral Sclerosis gene discovery
+Amyotrophic Lateral Sclerosis gene expression
+Amyotrophic Lateral Sclerosis gene therapy
+Amyotrophic Lateral Sclerosis genetic association
+Amyotrophic Lateral Sclerosis genetic markers
+Amyotrophic Lateral Sclerosis genetic risk
+Amyotrophic Lateral Sclerosis genetics
+Amyotrophic Lateral Sclerosis GWAS
+Amyotrophic Lateral Sclerosis molecular markers
+Amyotrophic Lateral Sclerosis mutation
+Amyotrophic Lateral Sclerosis pathogenesis
+Amyotrophic Lateral Sclerosis prognosis
+Amyotrophic Lateral Sclerosis protein aggregation
+Amyotrophic Lateral Sclerosis risk factors
+Amyotrophic Lateral Sclerosis target therapy
+Amyotrophic Lateral Sclerosis therapeutic targets
+Amyotrophic Lateral Sclerosis treatment
+Amyotrophic Lateral Sclerosis variant
+Familial Amyotrophic Lateral Sclerosis
+Sporadic Amyotrophic Lateral Sclerosis
