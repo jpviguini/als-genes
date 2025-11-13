@@ -2,7 +2,7 @@ from Bio import Entrez
 import json, string, re, os, time
 from pathlib import Path
 from tqdm import tqdm
-import subprocess
+import requests
 import xml.etree.ElementTree as ET
 
 
@@ -51,56 +51,99 @@ def list_from_txt(file_path):
 
 def search_all(query):
     """
-    Executes a full PubMed search using NCBI EDirect.
-    Requires 'esearch' and 'efetch' installed (part of EDirect tools).
+    Executes a full Europe PMC search using its REST API.
     """
-    final_query = f'{query} AND English[Language]'
-    print(f"\nSearching all results for: {query} (using EDirect)")
+    final_query = f'{query} AND LANG:"eng"'
+    print(f"\nSearching all results for: {query} (using Europe PMC)")
+    
+    all_ids = []
+    url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
+    
+    params = {
+        "query": final_query,
+        "format": "json",
+        "pageSize": 1000,
+        "cursorMark": "*"
+    }
     
     try:
-        # run EDirect: esearch + efetch + extract PMIDs
-        command = [
-            "bash", "-c",
-            f'esearch -db pubmed -query "{final_query}" | efetch -format uid'
-        ]
-        result = subprocess.run(command, capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            print(f"  -> Error running EDirect: {result.stderr}")
-            return []
-        
-        # Split PMIDs (one per line)
-        all_ids = [line.strip() for line in result.stdout.split("\n") if line.strip()]
-        print(f"  -> Retrieved {len(all_ids)} IDs in total using EDirect.")
-        
-        return all_ids
+        while True:
+            r = requests.get(url, params=params)
+            r.raise_for_status() 
+            
+            data = r.json()
+            
+            current_page_results = data.get("resultList", {}).get("result", [])
+            
+            if not current_page_results:
+                break 
+            
+            for result in current_page_results:
+                if 'pmid' in result: 
+                    all_ids.append(result['pmid'])
+            
+            next_cursor = data.get("nextCursorMark")
+            
+            if not next_cursor or next_cursor == params["cursorMark"]:
+                break
+            
+            params["cursorMark"] = next_cursor
+            time.sleep(1.0)
 
-    except FileNotFoundError:
-        print("EDirect not found. Install it first with:")
-        print("    sh -c \"$(curl -fsSL https://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh)\"")
-        return []
+        print(f"  -> Retrieved {len(all_ids)} IDs in total using Europe PMC.")
+        return list(set(all_ids)) 
+
+    except requests.exceptions.RequestException as e:
+        print(f"  -> Error running Europe PMC search: {e}")
+        return all_ids 
     except Exception as e:
-        print(f"  -> Error during EDirect search: {e}")
-        return []
-
-
+        print(f"  -> Error during Europe PMC search: {e}")
+        return all_ids
 
 
 def fetch_details(id_list):
     '''
-    Executes an EFetch in Pubmed for a list of IDs
+    Executes a search in Europe PMC for a list of PMIDs
     '''
     if not id_list:
         return {}
+
+    all_papers_list = []
+    url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
+    
+    # EPMC queries have a length limit, so we chunk the ID list
+    chunk_size = 50 
+    
+    for i in range(0, len(id_list), chunk_size):
+        chunk_ids = id_list[i:i + chunk_size]
         
-    ids = ','.join(id_list)
-    Entrez.email = ENTREZ_EMAIL
-    handle = Entrez.efetch(db='pubmed',
-                           retmode='xml',
-                           id=ids)
-    results = Entrez.read(handle)
-    handle.close()
-    return results
+        # Create a query of OR'd PMIDs
+        id_query = " OR ".join([f"EXT_ID:{pmid}" for pmid in chunk_ids])
+        
+        params = {
+            "query": id_query,
+            "format": "json",
+            "pageSize": chunk_size,
+            "resultType": "core"  
+        }
+        
+        try:
+            r = requests.get(url, params=params)
+            r.raise_for_status()
+            data = r.json()
+            
+            results = data.get("resultList", {}).get("result", [])
+            all_papers_list.extend(results)
+            
+            time.sleep(1.0) 
+            
+        except requests.exceptions.RequestException as e:
+            print(f"  -> Error fetching batch: {e}")
+            continue
+
+    # Simulate the Entrez dictionary structure to minimize changes in the main loop
+    return {'PubmedArticle': all_papers_list}
+
 
 def flat(lis):
     '''
@@ -181,8 +224,8 @@ def extend_gene_search(gene_symbols):
 
 
 if __name__ == '__main__':
-    destination_path = '../results_als_general_pubmed/'
-    ids_file_path = '../data/ids_als_general_pubmed.txt'
+    destination_path = '../results_als_general3/'
+    ids_file_path = '../data/ids_als_general3.txt'
 
     Path(ids_file_path).touch(exist_ok=True)
     Path(destination_path).mkdir(parents=True, exist_ok=True)
@@ -201,7 +244,7 @@ if __name__ == '__main__':
     #search_strings.extend(gene_synonyms)
     search_strings = list(dict.fromkeys(search_strings)) 
 
-    print(f"\n--- Starting search in Pubmed with {len(search_strings)} terms in total ---")
+    print(f"\n--- Starting search in Europe PMC with {len(search_strings)} terms in total ---")
 
     ids = set()
     try:
@@ -239,7 +282,7 @@ if __name__ == '__main__':
                 print(f'{papers_retrieved} new articles found.')
                 ids.update(id_list)
 
-            batch_size = 3000  
+            batch_size = 9000  
             term_folder = os.path.join(destination_path, s_clean_folder_name)
             Path(term_folder).mkdir(parents=True, exist_ok=True)
 
@@ -259,40 +302,36 @@ if __name__ == '__main__':
                     path_name = ''
 
                     try:
-                        article_title = paper['MedlineCitation']['Article']['ArticleTitle']
-                        article_title_filename = article_title.lower().translate(str.maketrans('', '', string.punctuation)).replace(' ', '_')
-                    except KeyError as e:
-                        if 'ArticleTitle' in e.args: pass
+                        article_title = paper.get('title', '')
+                        if article_title:
+                            article_title_filename = article_title.lower().translate(str.maketrans('', '', string.punctuation)).replace(' ', '_')
+                        else:
+                            continue 
+                    except Exception:
+                        continue 
 
                     if article_title:
-                        try:                
-                            article_abstract = ' '.join(paper['MedlineCitation']['Article']['Abstract']['AbstractText'])
-                        except KeyError as e:
-                            if 'Abstract' in e.args: article_abstract = ''
+                        
+                        article_abstract = paper.get('abstractText', '')
+                        article_year = paper.get('pubYear', "XXXX")
+                        
+                        if len(article_year) != 4:
+                            article_year = "XXXX"
 
-                        try:
-                            article_year = paper['MedlineCitation']['Article']['Journal']['JournalIssue']['PubDate']['Year']
-                        except KeyError:
-                            try:
-                                article_year = paper['MedlineCitation']['Article']['Journal']['JournalIssue']['PubDate']['MedlineDate'][0:4]
-                            except KeyError:
-                                article_year = "XXXX" # unknown year
+                        filename = '{}_{}'.format(article_year, article_title_filename)
+                        if len(filename) > 150:
+                            filename = filename[0:146]
 
-                        if len(article_year) == 4:
-                            filename = '{}_{}'.format(article_year, article_title_filename)
-                            if len(filename) > 150:
-                                filename = filename[0:146]
+                        path_name = os.path.join(term_folder, f'{filename}.txt')
+                        path_name = path_name.encode('ascii', 'ignore').decode('ascii')
 
-                            path_name = os.path.join(term_folder, f'{filename}.txt')
-                            path_name = path_name.encode('ascii', 'ignore').decode('ascii')
-
-                            with open(path_name, "w", encoding='utf-8') as myfile: 
-                                myfile.write(article_title + ' ' + article_abstract)
-                            
-                            new_papers_in_batch += 1
+                        with open(path_name, "w", encoding='utf-8') as myfile: 
+                            myfile.write(article_title + ' ' + article_abstract)
+                        
+                        new_papers_in_batch += 1
 
                 print(f"  -> Saved {new_papers_in_batch} so far...")
-                time.sleep(1.0)  
+                time.sleep(0.5)  
 
 
             

@@ -1,4 +1,4 @@
-# This is for training one model per year (dot product validation afterwards)
+# this is for training one model per year (dot product validation afterwards)
 
 import os, re, sys, shutil, itertools, gensim
 from gensim.models import Word2Vec, FastText
@@ -12,8 +12,8 @@ if __name__ == '__main__':
 
 
     if MODEL_TYPE == 'w2v':
-        output_dir = './models_word2vec_timespan/'
-        training_params = [200, 0.025, 10]
+        output_dir = './models_word2vec_timespan_general/'
+        training_params = [200, 0.05, 15]
     else:
         output_dir = './models_fasttext_timespan/'
         training_params = [300, 0.0025, 5]
@@ -22,8 +22,10 @@ if __name__ == '__main__':
 
     # loading corpus
     print('Reading DataFrame of papers...')
-    df = pd.read_csv('../data/corpus_als_preprocessed3.csv', escapechar='\\')
+    df = pd.read_csv('../data/corpus_als_general_pmc_preprocessed3.csv', escapechar='\\')
     
+    df = df[df["year"] >= 1970] # filtering to start in 1970 (that are very few articles before that)
+
     years = sorted(df.year.unique().tolist())
     first_year = years[0]
     ranges = [years[:i+1] for i in range(len(years))]

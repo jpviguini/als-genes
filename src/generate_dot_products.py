@@ -6,10 +6,10 @@ from scipy.special import softmax
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 
-MODELS_DIR = "./models_word2vec_timespan/"
+MODELS_DIR = "./models_word2vec_timespan_general/"
 OUTPUT_DIR = "./validation/per_gene/w2v/"
 GENES_FILE = "../data/core_genes.txt"   # file with one gene per line
-TARGET_WORD = "als"
+TARGET_WORD = "als_disease_token"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -32,7 +32,7 @@ def normalize_values(values):
     return minmax, zscore, softmaxed
 
 def main():
-    print("Starting script of generating dot products (genes x 'ALS')\n")
+    print("Starting script of generating dot products (genes x 'als_disease_token')\n")
 
     genes = load_genes(GENES_FILE)
     print(f"Total of genes: {len(genes)}")
@@ -78,6 +78,7 @@ def main():
         if df["dot"].notna().sum() == 0:
             print(f"No valid value for gene {gene}, ignoring.")
             continue
+
 
         df["dot_minmax"], df["dot_zscore"], df["dot_softmax"] = normalize_values(
             df["dot"].fillna(0)

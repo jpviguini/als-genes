@@ -41,7 +41,7 @@ if __name__ == '__main__':
     print('Starting script')
 
     TRAINING_FASTTETX_MODELS = False # false --> word2vec
-    DATA_CSV_PATH = '../data/corpus_als_preprocessed2.csv' 
+    DATA_CSV_PATH = '../data/corpus_als_general_pmc_preprocessed3.csv' 
     TEXT_COLUMN_NAME = 'text' 
     
     # grid search
@@ -50,6 +50,12 @@ if __name__ == '__main__':
         'alpha': (0.0025, 0.025, 0.05), 
         'negative': (5, 10, 15)
     }
+
+    # parm_dict = {
+    #     'size': ([200]), 
+    #     'alpha': ([0.05]), 
+    #     'negative': ([15])
+    # }
     
     MIN_COUNT = 5 # if the word is mentioned at least MIN_COUNT times 
     ITERATIONS = 15 
@@ -63,7 +69,7 @@ if __name__ == '__main__':
         MODEL_DIR = '../fasttext/models_nolemma/'
         model_type = 'FastText'
     else:
-        MODEL_DIR = './models/improved/' 
+        MODEL_DIR = './models/general_pmc3/' 
         model_type = 'Word2Vec'
         
     os.makedirs(MODEL_DIR, exist_ok=True)

@@ -49,7 +49,7 @@ def calculate_ranking_dot_product(genes, model, model_type: str):
     candidate_embeddings = normalize(candidate_embeddings, axis=1)
 
     # "ALS" embedding
-    als_word = "als"
+    als_word = "als_disease_token"
     if model_type == 'fasttext':
         if model.get_word_id(als_word) == -1:
             print("'ALS' not found in fastText vocab")
@@ -81,11 +81,11 @@ def calculate_ranking_dot_product(genes, model, model_type: str):
 
 
 
-genes_df = pd.read_csv("../data/genes_extracted_validated.csv")
+genes_df = pd.read_csv("../data/genes_extracted_validated_general_pmc3.csv")
 
 genes = genes_df["gene"].tolist()
 
-model_path = "./models/improved/model_ALS_v200_a0p025_n10.model"
+model_path = "./models/general_pmc3/model_ALS_v200_a0p05_n15.model"
 model_type = "word2vec"
 
 
@@ -98,3 +98,12 @@ ranking_df = calculate_ranking_dot_product(genes, model, model_type)
 
 
 print(ranking_df.head(40))
+
+print(model.wv.similarity("sod1", "als_disease_token"))
+
+#print(model.wv.most_similar("als", topn=20))
+
+with open("../data/corpus_als_general_pmc_preprocessed3.csv") as f:
+    text = f.read().lower()
+print(text.count("als_disease_token"), text.count("amyotrophic lateral sclerosis"))
+

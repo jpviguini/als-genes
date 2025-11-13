@@ -9,7 +9,7 @@ from tqdm import tqdm
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1" # forces only CPU execution (skips gpu warnings)
 
 
-df = pd.read_csv("../data/corpus_als_improved.csv")
+df = pd.read_csv("../data/corpus_als_general_pmc3.csv")
 texts = df['text'].dropna().tolist()
 print(f"Total of texts to process: {len(texts)}")
 
@@ -64,7 +64,7 @@ genes = list(valid_genes)
 print(f"Validated genes with MyGene: {len(genes)} / {len(genes_list)}")
 
 
-output_path = "../data/genes_extracted_validated.csv"
+output_path = "../data/genes_extracted_validated_general_pmc3.csv"
 pd.DataFrame({"gene": genes}).to_csv(output_path, index=False)
 
 print(f"Saved file in: {output_path}")

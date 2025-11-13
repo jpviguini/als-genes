@@ -41,8 +41,6 @@ ALS_SYNONYMS = [
 ]
 
 
-
-
 def normalize_text(text: str) -> str:
     if not isinstance(text, str):
         return ""
@@ -60,9 +58,17 @@ def normalize_text(text: str) -> str:
     for sym in UNITS_AND_SYMBOLS:
         text = text.replace(sym, " ")
 
-    # replace synonyms of ALS with "ALS"
-    regex_als = r'(?i)(' + '|'.join(ALS_SYNONYMS) + r')'
-    text = re.sub(regex_als, ' ALS ', text)
+
+    # defining the als token
+    UNAMBIGUOUS_TOKEN = "als_disease_token"
+
+
+    regex_als_specific = r'(?i)(' + '|'.join(ALS_SYNONYMS) + r')'
+    text = re.sub(regex_als_specific, f" {UNAMBIGUOUS_TOKEN} ", text)
+
+
+    text = re.sub(r"\bals\b", f" {UNAMBIGUOUS_TOKEN} ", text)
+
 
     # remove URLs and HTML entities
     text = re.sub(r"http\S+|www\.\S+", " ", text)
@@ -73,9 +79,12 @@ def normalize_text(text: str) -> str:
     text = re.sub(r'-{2,}', '-', text)      # replace multiple hyphens with one
     text = re.sub(r'\s*-\s*', '-', text)    # clean spaces around internal hyphens
 
+
     # remove isolated numbers and non-alphanumeric chars
     text = re.sub(r"[^a-z0-9_\-\s]", " ", text)
     text = re.sub(r"\b\d+\b", " ", text)
+
+    text = re.sub(r"\bh4\b", " ", text) # remove h4 from <h4></h4>
 
     # remove 1-character words
     text = re.sub(r"\b[a-zA-Z0-9]\b", " ", text)
@@ -94,14 +103,6 @@ def preprocess_corpus(df, text_column="text"):
     df = df[df[text_column].str.len() > 10]
     df = df[df[text_column].apply(lambda x: len(x.split()) > 20)]
 
-    exclude_pattern = (
-        r"\bmcr[- ]?als\b|"          # mcr-als
-        r"\bals\s*/\s*plnc\b|"       # ALS/PLNC
-        r"\bALS\s*-\s*\d+\b|"        # ALS-XXXX
-        r"acid[- ]labile[- ]subunit" # acid-labile subunit
-    )
-
-    df = df[~df[text_column].str.contains(exclude_pattern, case=False, regex=True)]
 
 
     # remove unwanted publication types
@@ -130,8 +131,7 @@ def preprocess_corpus(df, text_column="text"):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("../data/corpus_als_general_pmc.csv")
+    df = pd.read_csv("../data/corpus_als_general_pmc3.csv")
     df_clean = preprocess_corpus(df)
-    df_clean.to_csv("../data/corpus_als_general_pmc_preprocessed.csv", index=False)
-    print(f"Cleaned corpus saved in ../data/corpus_als_general_pmc_preprocessed.csv with {len(df_clean)} articles.")
-    
+    df_clean.to_csv("../data/corpus_als_general_pmc_preprocessed3.csv", index=False)
+    print(f"Cleaned corpus saved in ../data/corpus_als_general_pmc_preprocessed3.csv with {len(df_clean)} articles.")

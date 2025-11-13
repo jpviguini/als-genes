@@ -95,7 +95,7 @@ def contains(string, unwanted_words):
 
 def get_valid_analogies(model):
     
-    analogies_als_path = '../data/analogies_als_corrected.txt'
+    analogies_als_path = '../data/analogies_als.txt'
     analogies_grammar_path = '../data/analogies_grammar.txt'
     analogies_biomedical_path = '../data/analogies_biomedical.txt'
     
@@ -197,7 +197,7 @@ if __name__ == '__main__':
         model_type = 'FastText'
     else:
       
-        MODELS_PATH = '/home/jpviguini/Desktop/IC/src/models/improved' 
+        MODELS_PATH = '/home/jpviguini/Desktop/IC/src/models/general_pmc3' 
         model_type = 'Word2Vec'
     
    
@@ -232,7 +232,7 @@ if __name__ == '__main__':
         else:
             data_models_files['model name'].append('Model {}'.format(index+1))
         data_models_files['filepath'].append(model_name)
-    
+        
     df_models_files = pd.DataFrame(data=data_models_files)
     df_models_files.to_csv(os.path.join(output_dir, 'models_files.csv'), index=False)
 
@@ -332,6 +332,7 @@ if __name__ == '__main__':
             models_scores[model_name][topn]['Biomedical'] = model_score[3]
 
             number_of_times_models_were_loaded += 1
+
 
     print('\nGenerating performance tables...')
     performance_tables = [] # list of dataframes

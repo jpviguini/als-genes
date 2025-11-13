@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 
 
@@ -28,14 +29,18 @@ WINDOW_SIZE = 3
 X_THRESHOLD = 0.02    # threshold for positive derivative
 T_THRESHOLD = 0.04    # threshold for overall increase
 
+
+
 def detect_latent_knowledge(df):
     """
         Detects year in which the notification could be released
     """
 
+
     years = df["year"].values
     values = df[COLUMN].values
     n = len(values)
+
 
     for i in range(n - WINDOW_SIZE + 1):
         window_years = years[i:i+WINDOW_SIZE]
@@ -63,8 +68,8 @@ def plot_gene(df, gene, model_name, column):
 
     plt.figure(figsize=(8, 4))
 
-    
-    df = df[df[column] > 0] # only positive dot products
+
+    df = df[df["dot"] > 0] # only positive dot products
 
     if df.empty:
         print(f"No positive values for {gene}")
@@ -99,6 +104,8 @@ def plot_gene(df, gene, model_name, column):
     plt.ylabel(column.replace("_", " ").capitalize())
     plt.grid(True, alpha=0.3)
     plt.legend()
+    #plt.xticks(df["year"], df["year"].astype(int))
+    #plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{int(x)}"))
     plt.tight_layout()
 
     filename = f"{gene}_{model_name}_{column}.png"
@@ -107,7 +114,7 @@ def plot_gene(df, gene, model_name, column):
     plt.close()
     return filename
 
-def process_model(model_name, latex_entries):
+def process_model(model_name):
     folder = os.path.join(BASE_DIR, model_name)
     if not os.path.exists(folder):
         print(f"Folder {folder} not found.")
@@ -120,8 +127,10 @@ def process_model(model_name, latex_entries):
         gene = csv_file.replace(".csv", "")
         file_path = os.path.join(folder, csv_file)
 
+
         try:
             df = pd.read_csv(file_path)
+            print(f"\nGene: {gene}")
             if COLUMN not in df.columns or "year" not in df.columns:
                 continue
 
@@ -129,40 +138,18 @@ def process_model(model_name, latex_entries):
             if img_name is None:
                 continue
 
-            latex_entries.append(f"""
-\\section*{{{gene.upper()} ({model_name.upper()})}}
-\\begin{{figure}}[h!]
-    \\centering
-    \\includegraphics[width=0.8\\textwidth]{{{img_name}}}
-    \\caption{{Temporal evolution of {gene.upper()} ({model_name.upper()}) till the year of discovery({GENE_DISCOVERY_YEAR.get(gene.upper(), '?')}).}}
-\\end{{figure}}
-\\newpage
-""")
+
         except Exception as e:
             print(f"Error when processing {gene}: {e}")
 
-def build_latex(entries):
-    with open(LATEX_FILE, "w") as f:
-        f.write(r"""
-\documentclass[a4paper,12pt]{article}
-\usepackage{graphicx}
-\usepackage{geometry}
-\geometry{margin=1in}
-\begin{document}
-\title{Temporal Dot Product Evolution of ALS genes}
-\author{Word2Vec and FastText}
-\maketitle
-""")
-        f.writelines(entries)
-        f.write("\n\\end{document}")
+
 
 def main():
-    latex_entries = []
+
     for model in MODELS:
-        process_model(model, latex_entries)
-    build_latex(latex_entries)
+        process_model(model)
+
     print(f"\nVisualizations: {OUTPUT_DIR}")
-    print(f"LaTeX file: {LATEX_FILE}")
 
 if __name__ == "__main__":
     main()

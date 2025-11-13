@@ -3,8 +3,8 @@ import pandas as pd
 from tqdm import tqdm
 import sys
 
-SOURCE_DIR = '../results_als/'       # file with all .txt articles
-OUTPUT_CSV = '../data/corpus_als_with_year.csv'
+SOURCE_DIR = '../results_als_general3/'       # file with all .txt articles
+OUTPUT_CSV = '../data/corpus_als_general_pmc3.csv'
 TEXT_COLUMN = 'text'
 YEAR_COLUMN = 'year'
 
