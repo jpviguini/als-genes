@@ -1,4 +1,4 @@
-<h1 align="center">🧬 Genetic Associations in ALS Through NLP and Network Analysis</h1>
+<h1 align="center">🧬 Unsupervised ALS Gene Discovery from Biomedical Literature Using Static and Contextual Embeddings</h1>
 
 <p align="center">
   <b>Author:</b> João Pedro Viguini<sup>1</sup><br>
