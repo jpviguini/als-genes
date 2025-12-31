@@ -45,17 +45,17 @@ if __name__ == '__main__':
     TEXT_COLUMN_NAME = 'text' 
     
     # grid search
-    parm_dict = {
-        'size': (100, 200, 300), 
-        'alpha': (0.0025, 0.025, 0.05), 
-        'negative': (5, 10, 15)
-    }
-
     # parm_dict = {
-    #     'size': ([200]), 
-    #     'alpha': ([0.05]), 
-    #     'negative': ([15])
+    #     'size': (100, 200, 300), 
+    #     'alpha': (0.0025, 0.025, 0.05), 
+    #     'negative': (5, 10, 15)
     # }
+
+    parm_dict = {
+        'size': ([200]), 
+        'alpha': ([0.0025]), 
+        'negative': ([5])
+    }
     
     MIN_COUNT = 5 # if the word is mentioned at least MIN_COUNT times 
     ITERATIONS = 15 
