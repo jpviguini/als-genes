@@ -1,4 +1,4 @@
-<h1 align="center">🧬 Evidence Aggregation Matters: Weakly Supervised Amyotrophic Lateral Sclerosis Gene Prioritization from Noisy Literature</h1>
+<h1 align="center">🧬 From Incidental to Evidential: A Weakly Supervised MIL Framework for ALS Gene Discovery</h1>
 
 
 
